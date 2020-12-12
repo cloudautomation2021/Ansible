@@ -1,7 +1,11 @@
 #Ansible script for update windows servers
+
 #Ansible playbook for run updates on Windows servers
+
 #Reboot automatically if needed
+
 #capture updates logs
+
 #mail logs files
 
 
