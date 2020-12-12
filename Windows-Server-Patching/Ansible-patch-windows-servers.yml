@@ -1,0 +1,63 @@
+---
+-
+  hosts: 127.0.0.1
+  name: Delete old logs DIR and FILE
+  tasks:
+    - name: Delete existing logs file on Ansible Server
+      file:
+        path: /home/ansible/user-ansible/patching_logs/
+        state: absent
+
+-
+  hosts: server
+  name: "Win_Updates"
+  tasks:
+
+#If File "ansible_wu" allready exist then  ansible will delete the existing File
+    - name: Remove  ansible_wu logs file  from Target hosts
+      win_file:
+        path: C:\Users\ansible_wu
+        state: absent
+
+    - name: Install all security updates  and rollup
+      win_updates:
+        category_names:
+            - CriticalUpdates
+            - UpdateRollups
+            - Updates
+            - DefinitionUpdates
+            - FeaturePacks
+            - ServicePacks
+            - UpdateRollups
+            - Upgrade
+        reboot: yes
+        reboot_timeout: 3600
+        log_path: C:\Users\ansible_wu
+
+    - name: Ensure WinRM starts when the system has settled and is ready to work reliably
+      win_service:
+        name: WinRM
+        start_mode: delayed
+
+    - name: Copy logs file from target server to Source Ansible Server
+      fetch:
+        src: C:\Users\ansible_wu
+        dest: /home/ansible/user-ansible/patching_logs/
+-
+  hosts: 127.0.0.1
+  name: Create zip file
+  tasks:
+    - name: Archives the files and folders on Ansible Host
+      archive:
+        path: /home/ansible/user-ansible/patching_logs/*
+        dest: /home/ansible/user-ansible/patching_logs/Ansible-report.zip
+        format: zip
+
+    - name: Mail  Ansible patching_logs
+      mail:
+        host: 127.0.0.1
+        subject: Ansible-report
+        from: ansible-win-patching@abc.com
+        to:   couldteam@abc.com
+        attach: /home/ansible/user-ansible/patching_logs/Ansible-report.zip
+      delegate_to: localhost
