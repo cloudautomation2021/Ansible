@@ -1,0 +1,59 @@
+---
+-
+  hosts: LinuxServer-List
+  name: "Install sophos on Linux boxes And Remove Symantec AV if allready Install "
+  ignore_unreachable: no
+  become: true
+  tasks:
+
+
+    - name: Stop symantec services[ "symcfgd"   "rtvscand"  "smcd" ]
+      service:
+        name: "{{ item }}"
+        state: stopped
+      with_items:
+        - symcfgd
+        - rtvscand
+        - smcd
+      ignore_errors: yes
+
+    - name: Uninstalla Symantec agent
+      shell: |
+        yes | /opt/Symantec/symantec_antivirus/uninstall.sh
+      ignore_errors: yes
+
+    - name: Removed Symantec directory from target servers[ "/etc/symantec" "/opt/Symantec" ]
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /etc/symantec
+        - /opt/Symantec
+      ignore_errors: yes
+
+    - name: Download SophosInstaller setup
+      get_url:
+        url: http://myrepo/sophos/SophosInstall.sh
+        dest: /root/
+
+    - name: backup /etc/environment file
+      fetch:
+        src: /etc/environment
+        dest: /home/ansible/backup/env_files-backup
+
+    - name: Copy the file script.sh for export proxy
+      copy:
+        src: /home/ansible/script.sh
+        dest: /root/
+        mode: '0777'
+
+    - name: Execute the script.sh
+      command: sh /root/script.sh
+
+    - name: Execute the installation script SophosInstall.sh
+      shell: sh /root/SophosInstall.sh
+
+    - name: Check sophos service status
+      service_facts:
+    - debug:
+        var: ansible_facts.services["sav-protect.service"] and ansible_facts.services["sav-rms.service"]
