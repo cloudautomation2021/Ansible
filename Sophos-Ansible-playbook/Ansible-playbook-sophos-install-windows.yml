@@ -1,0 +1,74 @@
+# Ansible playbook for Remove symantec_antivirus from windows server
+#stop antivirus service
+#Remove symantec directory
+#Uninstall symantec_antivirus
+#uninstall symantec live Updates
+
+#Ansible playbook Install sophos on windows server
+#Configure proxy setting
+#import proxy setting to IE
+#Download setup.ext from internal repository
+#Run powershell command on remote server 
+
+
+
+---
+-
+  hosts: windows-sophos
+  name: "Installa Sophos Endpoint Agent on windows servers and Remove Symantec AV if exists"
+  tasks:
+
+    - name: Proxy status checking if allready configured on target servers and export to IE
+      win_shell: cmd.exe -
+      args:
+        stdin: netsh winhttp import proxy source=ie
+      register: findProxySatus_output
+    - debug:
+         var: findProxySatus_output
+
+    - name: Stopping symantec endpoint protection
+      win_command: cmd.exe -
+      args:
+        stdin: start smc -stop
+      ignore_errors: yes
+
+    - name: Uninstalling symantec endpoint protection
+      win_command: powershell.exe -
+      args:
+        stdin: (Get-WmiObject -Class Win32_Product -Filter "Name='Symantec Endpoint Protection'" -ComputerName . ).Uninstall()
+      ignore_errors: yes
+
+    - name: Uninstalling LiveUpdate3.3(Symantec Corporation)
+      win_command: cmd.exe -
+      args:
+        chdir: C:\Program Files (x86)\Symantec\LiveUpdate\
+        stdin: lsetup.exe /a /s /q /u
+      ignore_errors: yes
+
+    - name: Configure  proxy settings
+      win_inet_proxy:
+        proxy:
+           http:  http://myproxy-server.com:3128
+           https: http://myproxy-server.com:3128
+
+    - name: Ansible create directory for store SophosSetup.exe installer
+      win_file:
+        path: C:\Windows\Temp\Sophos-Agent-InstallerFile
+        state: directory
+
+
+    - name: Downloading Sophos Endpoint Agent from repository
+      win_get_url:
+        url: http://mywindrepo/SophosSetup.exe
+        dest: C:\Windows\Temp\Sophos-Agent-InstallerFile\
+      register: downloading_output
+    - debug:
+            var: downloading_output
+
+    - name: Installing Sophos endpoint Agent
+      win_shell: powershell.exe -
+      args:
+        stdin: Start-Process -FilePath "C:\Windows\Temp\Sophos-Agent-InstallerFile\SophosSetup.exe" -ArgumentList "--quiet" -wait ;Start-Sleep -s 300
+      register: findstatus_output
+    - debug:
+         var: findstatus_output
