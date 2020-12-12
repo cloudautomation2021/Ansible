@@ -1,3 +1,16 @@
+#Ansible playbook for Remove Symantec antivirus from  Linux target server if allready Install
+
+#Ansible playbook for Install Sophos antivirus on Linux servers
+
+# Stop symantec_antivirus server
+# Uninstalla Symantec antivirus
+# Remove Symantec directory
+
+#export proxy before start installation
+#Install Sophos endpoint aget
+#service status check   after  sophos installation
+
+
 ---
 -
   hosts: LinuxServer-List
@@ -31,9 +44,9 @@
         - /opt/Symantec
       ignore_errors: yes
 
-    - name: Download SophosInstaller setup
+    - name: Download Sophos Installer setup from yum repository
       get_url:
-        url: http://myrepo/sophos/SophosInstall.sh
+        url: http://myrepo/SophosInstall.sh
         dest: /root/
 
     - name: backup /etc/environment file
