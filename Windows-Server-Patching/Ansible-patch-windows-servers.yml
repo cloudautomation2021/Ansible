@@ -1,3 +1,10 @@
+#Ansible script for update windows servers
+#Ansible playbook for run updates on Windows servers
+#Reboot automatically if needed
+#capture updates logs
+#mail logs files
+
+
 ---
 -
   hosts: 127.0.0.1
@@ -53,7 +60,7 @@
         dest: /home/ansible/user-ansible/patching_logs/Ansible-report.zip
         format: zip
 
-    - name: Mail  Ansible patching_logs
+    - name: Send Mail  Ansible patching_logs
       mail:
         host: 127.0.0.1
         subject: Ansible-report
