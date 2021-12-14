@@ -1,0 +1,21 @@
+---
+-
+  hosts: windows-sophos
+  name: "Install Pleasant-KeePassClient On Windows Server  across Datacenter Terminal/Jump Server
+  tasks:
+    - name: Ansible create directory for store Pleasant-KeePassClient installer File
+      win_file:
+        path: C:\Windows\Temp\Pleasant-KeePassClient
+        state: directory
+
+    - name: Copying Pleasant-KeePassClient.exe  a single file
+      win_copy:
+        src: /home/ansible/ansiblePleasant-KeePassClient.exe
+        dest: C:\Windows\Temp\Pleasant-KeePassClient\
+
+    - name: Installing Pleasant-KeePassClient.exe
+      win_package:
+        path: C:\Windows\Temp\Pleasant-KeePassClient\Pleasant-KeePassClient.exe
+        product_id: KeePass for Pleasant Password Server
+        arguments: /S
+        state: present
